@@ -1,2 +1,12 @@
-# circleci-vault-oidc
-How to use a CircleCI OIDC token to pull secrets from Vault.
+# circleci-external-secrets
+External secrets management using CircleCI.
+
+
+### VAULT 
+
+You should probably run this on a runner
+
+Requirements:
+    Context with:
+        VAULT_ADDR - vault endpoint
+        VAULT_ROLE_NAME - 

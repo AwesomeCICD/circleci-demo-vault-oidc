@@ -1,0 +1,82 @@
+version: "2.1"
+
+commands: 
+  install-vault:
+    steps:
+      - run:
+          name: Install Vault
+          command: |
+            echo "Update, install gpg..."
+            sudo apt update && sudo apt install gpg
+            echo "Do gpg stuff..."
+            wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg >/dev/null
+            gpg --no-default-keyring --keyring /usr/share/keyrings/hashicorp-archive-keyring.gpg --fingerprint
+            echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+            echo "Update, install Vault..."
+            sudo apt update && sudo apt install vault
+  install-vault-auth-prereqs-alpine:
+    steps:
+      - run:
+          name: Install packages needed for vault auth on Alpine Linux containers
+          command: |
+            apk add jq curl
+            apk add --update coreutils
+  vault-token-generate:
+    description: "Generate a Vault token using a CircleCI JWT/OIDC token."
+    steps:
+      - run:
+          name: Authenticate with Vault
+          command: |
+              echo "Writing Vault CA cert..."
+              echo $VAULT_CACERT_B64 | base64 -d > /tmp/vault-ca.pem
+              echo
+              echo "Logging in to Vault..."
+              export PAYLOAD=$(jq -n --arg x "$VAULT_JWT_ROLE_NAME" --arg y "$CIRCLE_OIDC_TOKEN" '{"role": $x,"jwt": $y}')
+              export RESPONSE=$(curl -ks --data "$PAYLOAD" "${VAULT_ADDR}/v1/auth/jwt/login")
+              export VAULT_TOKEN=$(echo $RESPONSE | jq -r '.auth.client_token')
+              echo "$VAULT_TOKEN" > ~/.vault-token
+      - persist_to_workspace:
+          root:  "~"
+          paths: 
+            - .vault-token
+  vault-token-restore:
+    description: "Restores a cached Vault token for use in a job."
+    steps:
+      - run:
+          command: |
+              echo "Writing Vault CA cert..."
+              echo $VAULT_CACERT_B64 | base64 -d > /tmp/vault-ca.pem
+      - attach_workspace:
+          at:  "~"
+
+jobs:
+  generate-vault-token:
+    docker: 
+      - image:  hashicorp/vault:1.11
+    steps:
+      - install-vault-auth-prereqs-alpine
+      - vault-token-generate
+
+  test-vault-token:
+    docker: 
+      - image:  hashicorp/vault:1.11
+    steps:
+      - install-vault-auth-prereqs-alpine
+      - vault-token-restore
+      - run:
+          name: Authenticate with Vault and read/write a secret
+          command: |
+              echo "Writing and reading a secret..."
+              vault write cubbyhole/my-secret my-value=s3cr3t
+              vault read cubbyhole/my-secret
+workflows:
+  vault:
+    jobs: 
+      - generate-vault-token:
+          context: 
+            - vault-dev
+      - test-vault-token:
+          context: 
+            - vault-dev
+          requires:
+            - generate-vault-token

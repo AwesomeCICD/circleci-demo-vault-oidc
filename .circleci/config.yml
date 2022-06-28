@@ -36,7 +36,7 @@ commands:
               export VAULT_TOKEN=$(echo $RESPONSE | jq -r '.auth.client_token')
               echo "$VAULT_TOKEN" > ~/.vault-token
       - persist_to_workspace:
-          root:  "~"
+          root:  .
           paths: 
             - .vault-token
             - vault-ca.pem
@@ -44,7 +44,7 @@ commands:
     description: "Restores a cached Vault token for use in a job."
     steps:
       - attach_workspace:
-          at:  "~"
+          at: .
 
 jobs:
   generate-vault-token:

@@ -28,9 +28,9 @@ commands:
           name: Authenticate with Vault
           command: |
               echo "Writing Vault CA cert..."
-              echo $VAULT_CACERT_B64 | base64 -d > /tmp/vault-ca.pem
+              echo $VAULT_CACERT_B64 | base64 -d > ~/vault-ca.pem
               echo
-              echo "Logging in to Vault..."
+              echo "Retrieving Vault client token..."
               export PAYLOAD=$(jq -n --arg x "$VAULT_JWT_ROLE_NAME" --arg y "$CIRCLE_OIDC_TOKEN" '{"role": $x,"jwt": $y}')
               export RESPONSE=$(curl -ks --data "$PAYLOAD" "${VAULT_ADDR}/v1/auth/jwt/login")
               export VAULT_TOKEN=$(echo $RESPONSE | jq -r '.auth.client_token')
@@ -39,13 +39,10 @@ commands:
           root:  "~"
           paths: 
             - .vault-token
+            - vault-ca.pem
   vault-token-restore:
     description: "Restores a cached Vault token for use in a job."
     steps:
-      - run:
-          command: |
-              echo "Writing Vault CA cert..."
-              echo $VAULT_CACERT_B64 | base64 -d > /tmp/vault-ca.pem
       - attach_workspace:
           at:  "~"
 

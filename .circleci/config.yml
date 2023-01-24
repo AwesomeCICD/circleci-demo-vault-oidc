@@ -6,6 +6,8 @@ commands:
       - run:
           name: Install Vault
           command: |
+            vault -h && exit 0 || echo "Installing vault..."
+            # only runs if vault command above fails
             echo "Update, install gpg..."
             sudo apt update && sudo apt install gpg
             echo "Do gpg stuff..."
@@ -40,6 +42,15 @@ commands:
           paths: 
             - .vault-token
             - vault-ca.pem
+  vault-auto-auth:
+    description: ""
+    steps:
+      - run:
+          name: Auto-authenticate with vault
+          command: |
+            # Config indicates which secrets to collect and how to authenticate     
+            vault agent -config=.circleci/vault/agent.hcl         
+
   vault-token-restore:
     description: "Restores a cached Vault token for use in a job."
     steps:
@@ -66,14 +77,31 @@ jobs:
               echo "Writing and reading a secret..."
               vault write cubbyhole/my-secret my-value=s3cr3t
               vault read cubbyhole/my-secret
+
+  setup-and-auto-auth:
+    docker: 
+      - image:  hashicorp/vault:1.11
+    steps:
+      - install-vault
+      - vault-auto-auth
+
 workflows:
-  vault:
-    jobs: 
-      - generate-vault-token:
-          context: 
-            - vault-dev
-      - test-vault-token:
-          context: 
-            - vault-dev
-          requires:
-            - generate-vault-token
+  vault: 
+    jobs:
+      - setup-and-auto-auth:
+          context:
+            - cera-vault-demo
+
+      
+#  vault:
+#    jobs: 
+#      - generate-vault-token:
+#          context: 
+#            - vault-dev
+#      - test-vault-token:
+#          context: 
+#            - vault-dev
+#          requires:
+#            - generate-vault-token
+
+# VS Code Extension Version: 1.5.1

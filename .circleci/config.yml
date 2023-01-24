@@ -92,6 +92,7 @@ workflows:
     jobs:
       - setup-and-auto-auth:
           context:
+            - cera-vault-oidc #required to match Vault bound claim for context-ids
             - cera-vault-demo
 
       

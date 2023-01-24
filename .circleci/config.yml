@@ -83,6 +83,7 @@ jobs:
       - image:  hashicorp/vault:1.11
     steps:
       - checkout
+      - run: echo $CIRCLE_OIDC_TOKEN > .circleci/vault/token.json
       - install-vault
       - vault-auto-auth
 

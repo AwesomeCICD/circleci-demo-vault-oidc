@@ -12,7 +12,7 @@ vault {
 auto_auth {
   method "jwt" {
     config = {
-      role = "appname-deploy"
+      role = "boa-dev-deploy"
       path = ".circleci/vault/token.json"
       remove_jwt_after_reading = false
     }

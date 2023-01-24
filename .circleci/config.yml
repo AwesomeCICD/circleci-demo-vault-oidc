@@ -82,6 +82,7 @@ jobs:
     docker: 
       - image:  hashicorp/vault:1.11
     steps:
+      - checkout
       - install-vault
       - vault-auto-auth
 

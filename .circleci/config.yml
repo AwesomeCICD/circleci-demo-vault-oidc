@@ -27,7 +27,6 @@ commands:
             envsubst < .circleci/vault/agent.hcl.tpl > .circleci/vault/agent.hcl
             # This config indicates which secrets to collect and how to authenticate     
             vault agent -config=.circleci/vault/agent.hcl
-            source .
       - run:
           name: Set Environment Variables from Vault
           command: |

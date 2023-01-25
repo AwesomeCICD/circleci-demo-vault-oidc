@@ -23,88 +23,40 @@ commands:
           command: |
             apk add jq curl
             apk add --update coreutils
-  vault-token-generate:
-    description: "Generate a Vault token using a CircleCI JWT/OIDC token."
-    steps:
-      - run:
-          name: Authenticate with Vault
-          command: |
-              echo "Writing Vault CA cert..."
-              echo $VAULT_CACERT_B64 | base64 -d > ~/vault-ca.pem
-              echo
-              echo "Retrieving Vault client token..."
-              export PAYLOAD=$(jq -n --arg x "$VAULT_JWT_ROLE_NAME" --arg y "$CIRCLE_OIDC_TOKEN" '{"role": $x,"jwt": $y}')
-              export RESPONSE=$(curl -ks --data "$PAYLOAD" "${VAULT_ADDR}/v1/auth/jwt/login")
-              export VAULT_TOKEN=$(echo $RESPONSE | jq -r '.auth.client_token')
-              echo "$VAULT_TOKEN" > ~/.vault-token
-      - persist_to_workspace:
-          root:  ..
-          paths: 
-            - .vault-token
-            - vault-ca.pem
-  vault-auto-auth:
-    description: ""
-    steps:
-      - run:
-          name: Auto-authenticate with vault
-          command: |
-            # Config indicates which secrets to collect and how to authenticate     
-            vault agent -config=.circleci/vault/agent.hcl         
 
-  vault-token-restore:
-    description: "Restores a cached Vault token for use in a job."
+  vault-auto-auth:
+    description: "Use Vault auto auth to load secrets"
     steps:
-      - attach_workspace:
-          at: ..
+      - run:
+          name: Auto-authenticate with Vault
+          command: |
+            # Write the CircleCI provided value to a file read by Vault
+            echo $CIRCLE_OIDC_TOKEN > .circleci/vault/token.json
+            # This config indicates which secrets to collect and how to authenticate     
+            vault agent -config=.circleci/vault/agent.hcl
+      - run:
+          name: Set Environment Variables from Vault
+          command: |
+            # In order to properly expose values in Environment, we _source_ the shell values written by agent
+            source .circleci/vault/setenv
 
 jobs:
-  generate-vault-token:
-    docker: 
-      - image:  hashicorp/vault:1.11
-    steps:
-      - install-vault-auth-prereqs-alpine
-      - vault-token-generate
-
-  test-vault-token:
-    docker: 
-      - image:  hashicorp/vault:1.11
-    steps:
-      - install-vault-auth-prereqs-alpine
-      - vault-token-restore
-      - run:
-          name: Authenticate with Vault and read/write a secret
-          command: |
-              echo "Writing and reading a secret..."
-              vault write cubbyhole/my-secret my-value=s3cr3t
-              vault read cubbyhole/my-secret
-
-  setup-and-auto-auth:
+  setup-vault-and-load-secrets:
     docker: 
       - image:  hashicorp/vault:1.11
     steps:
       - checkout
-      - run: echo $CIRCLE_OIDC_TOKEN > .circleci/vault/token.json
       - install-vault
       - vault-auto-auth
+
+  use-secrets:
+    
 
 workflows:
   vault: 
     jobs:
-      - setup-and-auto-auth:
+      - setup-vault-and-load-secrets:
           context:
-            - cera-vault-oidc #required to match Vault bound claim for context-ids
-            - cera-vault-demo
-
-      
-#  vault:
-#    jobs: 
-#      - generate-vault-token:
-#          context: 
-#            - vault-dev
-#      - test-vault-token:
-#          context: 
-#            - vault-dev
-#          requires:
-#            - generate-vault-token
+            - circleci-vault-demo
 
 # VS Code Extension Version: 1.5.1

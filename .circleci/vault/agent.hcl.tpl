@@ -32,6 +32,6 @@ template_config {
 
 
 template {
-  source      = ".circleci/vault/cluster.ctmpl"
+  source      = ".circleci/vault/secrets.ctmpl"
   destination = ".circleci/vault/setenv"
 }

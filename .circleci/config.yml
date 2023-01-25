@@ -53,7 +53,7 @@ jobs:
 
   use-secrets:
     docker: 
-      - image:  hashicorp/vault:1.11
+      - image:  cimg/base:2023.01
     steps:
       - run: echo "Username is $SECRET_DEMO_USERNAME, password is $SECRET_DEMO_PASSWORD"
 

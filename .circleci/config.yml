@@ -7,7 +7,7 @@ commands:
           name: Install Vault and prereqs
           command: |
             vault -h && exit 0 || echo "Installing vault"
-            #only runs if vault command avbove failed
+            # only runs if vault command above fails
             cd /tmp
             wget https://releases.hashicorp.com/vault/1.12.2/vault_1.12.2_linux_amd64.zip
             unzip vault_1.12.2_linux_amd64.zip

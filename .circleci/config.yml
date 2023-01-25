@@ -26,10 +26,11 @@ commands:
             # Write the CircleCI provided value to a file read by Vault
             echo $CIRCLE_OIDC_TOKEN > .circleci/vault/token.json
             # Substitute the env vars in our context to render the Vault config file
-            apk add gettext libintl
+            #apk add gettext libintl
             envsubst < .circleci/vault/agent.hcl.tpl > .circleci/vault/agent.hcl
             # This config indicates which secrets to collect and how to authenticate     
             vault agent -config=.circleci/vault/agent.hcl
+            source .
       - run:
           name: Set Environment Variables from Vault
           command: |
@@ -39,15 +40,16 @@ commands:
 jobs:
   setup-vault-and-load-secrets:
     docker: 
-      - image:  hashicorp/vault:1.11
+      - image: cimg/base:2023:1
     steps:
       - checkout
       - install-vault
       - vault-auto-auth
+      - echo
 
   use-secrets:
     docker: 
-      - image:  hashicorp/vault:1.11
+      - image: cimg/base:2023:1
     steps:
       - run: echo "Username is $SECRET_DEMO_USERNAME, password is $SECRET_DEMO_PASSWORD"
 

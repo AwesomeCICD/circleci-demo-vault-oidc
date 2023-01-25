@@ -2,7 +2,7 @@ pid_file = "./pidfile"
 exit_after_auth = true
 
 vault {
-#  address = "https://vault.example.com" # set by env var
+  address = {{ env "VAULT_ADDR" }}
   retry {
     num_retries = -1
   }
@@ -12,7 +12,7 @@ vault {
 auto_auth {
   method "jwt" {
     config = {
-      role = "boa-dev-deploy"
+      role = "{{ env "VAULT_ROLE" }}"
       path = ".circleci/vault/token.json"
       remove_jwt_after_reading = false
     }

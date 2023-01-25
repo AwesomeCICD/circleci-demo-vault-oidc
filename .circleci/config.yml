@@ -4,7 +4,7 @@ commands:
   install-vault:
     steps:
       - run:
-          name: Install Vault
+          name: Install Vault and prereqs
           command: |
             vault -h && exit 0 || echo "Installing vault..."
             # only runs if vault command above fails
@@ -26,7 +26,7 @@ commands:
             # Write the CircleCI provided value to a file read by Vault
             echo $CIRCLE_OIDC_TOKEN > .circleci/vault/token.json
             # Substitute the env vars in our context to render the Vault config file
-            #apk add gettext libintl
+            sudo apt install envsubst
             envsubst < .circleci/vault/agent.hcl.tpl > .circleci/vault/agent.hcl
             # This config indicates which secrets to collect and how to authenticate     
             vault agent -config=.circleci/vault/agent.hcl

@@ -16,13 +16,6 @@ commands:
             echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
             echo "Update, install Vault..."
             sudo apt update && sudo apt install vault
-  install-vault-auth-prereqs-alpine:
-    steps:
-      - run:
-          name: Install packages needed for vault auth on Alpine Linux containers
-          command: |
-            apk add jq curl
-            apk add --update coreutils
 
   vault-auto-auth:
     description: "Use Vault auto auth to load secrets"
@@ -33,6 +26,7 @@ commands:
             # Write the CircleCI provided value to a file read by Vault
             echo $CIRCLE_OIDC_TOKEN > .circleci/vault/token.json
             # Substitute the env vars in our context to render the Vault config file
+            apk add envsubst
             envsubst < .circleci/vault/agent.hcl.tpl > .circleci/vault/agent.hcl
             # This config indicates which secrets to collect and how to authenticate     
             vault agent -config=.circleci/vault/agent.hcl
@@ -53,7 +47,7 @@ jobs:
 
   use-secrets:
     docker: 
-      - image:  cimg/base:2023.01
+      - image:  hashicorp/vault:1.11
     steps:
       - run: echo "Username is $SECRET_DEMO_USERNAME, password is $SECRET_DEMO_PASSWORD"
 

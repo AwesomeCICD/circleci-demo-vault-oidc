@@ -45,7 +45,6 @@ jobs:
       - checkout
       - install-vault
       - vault-auto-auth
-      - echo
 
   use-secrets:
     docker: 

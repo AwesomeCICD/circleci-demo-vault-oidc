@@ -1,4 +1,4 @@
-version: "2.1"
+version: 2.1
 
 commands: 
   install-vault:
@@ -32,6 +32,8 @@ commands:
           command: |
             # Write the CircleCI provided value to a file read by Vault
             echo $CIRCLE_OIDC_TOKEN > .circleci/vault/token.json
+            # Substitute the env vars in our context to render the Vault config file
+            envsubst < .circleci/vault/agent.hcl.tpl > .circleci/vault/agent.hcl
             # This config indicates which secrets to collect and how to authenticate     
             vault agent -config=.circleci/vault/agent.hcl
       - run:
@@ -50,7 +52,10 @@ jobs:
       - vault-auto-auth
 
   use-secrets:
-    
+    docker: 
+      - image:  hashicorp/vault:1.11
+    steps:
+      - run: echo "Username is $SECRET_DEMO_USERNAME, password is $SECRET_DEMO_PASSWORD"
 
 workflows:
   vault: 
@@ -58,5 +63,8 @@ workflows:
       - setup-vault-and-load-secrets:
           context:
             - circleci-vault-demo
+      - use-secrets:
+          requires:
+            - setup-vault-and-load-secrets
 
 # VS Code Extension Version: 1.5.1

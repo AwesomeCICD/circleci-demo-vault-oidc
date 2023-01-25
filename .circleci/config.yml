@@ -6,17 +6,13 @@ commands:
       - run:
           name: Install Vault and prereqs
           command: |
-            vault -h && exit 0 || echo "Installing vault..."
-            # only runs if vault command above fails
-            echo "Update, install gpg..."
-            sudo apt update && sudo apt install gpg
-            echo "Do gpg stuff..."
-            wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg >/dev/null
-            gpg --no-default-keyring --keyring /usr/share/keyrings/hashicorp-archive-keyring.gpg --fingerprint
-            echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-            echo "Update, install Vault..."
-            sudo apt update && sudo apt install vault
-            setcap -r /usr/bin/vault # see https://github.com/hashicorp/vault/issues/10924
+            vault -h && exit 0 || echo "Installing vault"
+            #only runs if vault command avbove failed
+            cd /tmp
+            wget https://releases.hashicorp.com/vault/1.12.2/vault_1.12.2_linux_amd64.zip
+            unzip vault_1.12.2_linux_amd64.zip
+            sudo mv vault /usr/local/bin        
+            vault -h
 
   vault-auto-auth:
     description: "Use Vault auto auth to load secrets"

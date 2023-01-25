@@ -27,7 +27,6 @@ commands:
             echo $CIRCLE_OIDC_TOKEN > .circleci/vault/token.json
             # Substitute the env vars in our context to render the Vault config file
             apk add gettext libintl
-            apk add envsubst
             envsubst < .circleci/vault/agent.hcl.tpl > .circleci/vault/agent.hcl
             # This config indicates which secrets to collect and how to authenticate     
             vault agent -config=.circleci/vault/agent.hcl

@@ -2,7 +2,7 @@ pid_file = "./pidfile"
 exit_after_auth = true
 
 vault {
-  address = $VAULT_ADDR
+  address = "$VAULT_ADDR"
   retry {
     num_retries = -1
   }

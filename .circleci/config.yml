@@ -26,11 +26,11 @@ commands:
             envsubst < .circleci/vault/agent.hcl.tpl > .circleci/vault/agent.hcl
             # This config indicates which secrets to collect and how to authenticate     
             vault agent -config=.circleci/vault/agent.hcl
-      # - run:
-      #     name: Set Environment Variables from Vault
-      #     command: |
-      #       # In order to properly expose values in Environment, we _source_ the shell values written by agent
-      #       source .circleci/vault/setenv
+      - run:
+          name: Set Environment Variables from Vault
+          command: |
+            # In order to properly expose values in Environment, we _source_ the shell values written by agent
+            source .circleci/vault/setenv
 jobs:
   setup-vault-and-load-secrets:
     docker: 
@@ -39,10 +39,10 @@ jobs:
       - checkout
       - install-vault
       - vault-auto-auth
-      # - run: 
-      #     name: Use secrets retrieved from Vault in a subsequent step
-      #     command: |
-      #       echo "Username is $SECRET_DEMO_USERNAME, password is $SECRET_DEMO_PASSWORD"
+      - run: 
+          name: Use secrets retrieved from Vault in a subsequent step
+          command: |
+            echo "Username is $SECRET_DEMO_USERNAME, password is $SECRET_DEMO_PASSWORD"
 workflows:
   vault: 
     jobs:

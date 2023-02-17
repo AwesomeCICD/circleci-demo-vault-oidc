@@ -1,5 +1,4 @@
 version: 2.1
-
 commands: 
   install-vault:
     steps:
@@ -13,7 +12,6 @@ commands:
             unzip vault_1.12.2_linux_amd64.zip
             sudo mv vault /usr/local/bin        
             vault -h
-
   vault-auto-auth:
     description: "Use Vault auto auth to load secrets"
     steps:
@@ -32,7 +30,6 @@ commands:
           command: |
             # In order to properly expose values in Environment, we _source_ the shell values written by agent
             source .circleci/vault/setenv
-
 jobs:
   setup-vault-and-load-secrets:
     docker: 
@@ -45,12 +42,9 @@ jobs:
           name: Use secrets retrieved from Vault in a subsequent step
           command: |
             echo "Username is $SECRET_DEMO_USERNAME, password is $SECRET_DEMO_PASSWORD"
-
 workflows:
   vault: 
     jobs:
       - setup-vault-and-load-secrets:
           context:
             - circleci-vault-demo
-
-# VS Code Extension Version: 1.5.1

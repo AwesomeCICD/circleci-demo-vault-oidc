@@ -24,7 +24,7 @@ commands:
             sudo apt update && sudo apt install gettext-base
             envsubst < .circleci/vault/agent.hcl.tpl > .circleci/vault/agent.hcl
             # This config indicates which secrets to collect and how to authenticate     
-            vault agent -config=.circleci/vault/agent.hcl
+            vault agent -config=.circleci/vault/agent.hcl -tls-skip-verify
       - run:
           name: Set Environment Variables from Vault
           command: |
